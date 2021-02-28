@@ -1,3 +1,5 @@
+import com.sun.jdi.Value;
+
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -13,8 +15,8 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         }
     }
 
-    private Node head;
-    private Node tail;
+    private Node<T> head;
+    private Node<T> tail;
 
     public MyList() {
         head = null;
@@ -23,24 +25,55 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
 
     @Override
     public AdvancedList<T> shuffle() {
-        return null;
+        MyList<T> sortedList = new MyList();
+
+        Node current = head;
+        Node last = current;
+        while (current.next != null) {
+            sortedList.add((T) current.next.data);
+            current = current.next;
+        }
+        sortedList.add((T) last.data);
+        return sortedList;
     }
 
     @Override
     public AdvancedList<T> sort(Comparator<T> comparator) {
-        return null;
+        MyList<T> sortedList = new MyList();
+
+        boolean statement = false;
+        while (!statement) {
+            statement = true;
+            Node temp = head;
+            while (temp != null) {
+                Node switchable = temp;
+                if ((comparator.compare((T) temp.data, (T) temp.next.data) > 0) || (temp.data == null)) {
+                    switchable.data = temp.data;
+                    temp.data = temp.prev.data;
+                    temp.prev.data = switchable.data;
+                    statement = false;
+                }
+                temp = temp.next;
+            }
+        }
+
+        Node current = head.next;
+        while (current != null) {
+            sortedList.add((T) current.data);
+            current = current.next;
+        }
+
+        return sortedList;
     }
 
-    //done
     @Override
     public String author() {
         return "Gorolevich Ivan";
     }
 
-    //done
     @Override
     public void add(T item) {
-        Node temp = new Node (item);
+        Node<T> temp = new Node (item);
         if (isEmpty())
             head = temp;
         else
@@ -50,10 +83,9 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         tail = temp;
     }
 
-    //done
     @Override
     public void insert(int index, T item) throws Exception {
-        Node cur = head;
+        Node<T> cur = head;
         int c = 0;
 
         while (cur != null && c != index) {
@@ -68,7 +100,6 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         temp.next = cur;
     }
 
-    //additional method for removing first item
     public void removeFirst() {
         if (head.next == null)
             tail = null;
@@ -78,7 +109,6 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         head = head.next;
     }
 
-    //additional method for removing last item
     public void removeLast() {
         if (head.next == null)
             head = null;
@@ -88,10 +118,9 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         tail = tail.prev;
     }
 
-    //done
     @Override
     public void remove(int index) throws Exception {
-        Node cur = head;
+        Node<T> cur = head;
         int c = 0;
 
         while (cur != null && c != index) {
@@ -111,20 +140,18 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
 
     }
 
-    //something wrong with type
     @Override
     public Optional<T> get(int index) {
-        Node cur = head;
+        Node<T> cur = head;
         int c = 0;
 
         while (cur != null && c != index) {
             cur = cur.next;
             c++;
         }
-        return (Optional<T>) cur.data;
+        return Optional.ofNullable(index < size() ? cur.data : null);
     }
 
-    //done
     @Override
     public int size() {
         int count = 0;
@@ -136,18 +163,17 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         return count;
     }
 
-    //something wrong with type
     @Override
     public void addAll(SimpleList<T> list) {
-        for (T item : list) {
-            add(item);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).isPresent())
+                add(list.get(i).get());
         }
     }
 
-    //done
     @Override
     public int first(T item) {
-        Node cur = tail;
+        Node<T> cur = tail;
         int count = 0;
 
         while (cur.data != item) {
@@ -158,10 +184,9 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         return count;
     }
 
-    //done
     @Override
     public int last(T item) {
-        Node cur = head;
+        Node<T> cur = head;
         int count = 0;
 
         while (cur.data != item) {
@@ -173,10 +198,9 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         return count;
     }
 
-    //done
     @Override
     public boolean contains(T item) {
-        Node temp = head;
+        Node<T> temp = head;
         while (temp != null) {
             if (temp.data == item)
                 return true;
@@ -185,15 +209,13 @@ public class MyList<T> implements AdvancedList<T>, AuthorHolder {
         return false;
     }
 
-    //done
     @Override
     public boolean isEmpty() {
         return head == null;
     }
 
-    //optional
     public void print() {
-        Node temp = head;
+        Node<T> temp = head;
         while (temp != null) {
             System.out.println(temp.data);
             temp = temp.next;
